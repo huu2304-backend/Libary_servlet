@@ -1,17 +1,17 @@
-# Bước 1: Dùng Maven để đóng gói code
+# Stage 1: Build bằng Maven
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+# Copy toàn bộ code vào trong container
 COPY . .
-# Lệnh này sẽ tạo ra file trong thư mục target/
+# Chạy lệnh build để tạo ra file .war trong thư mục target/
 RUN mvn clean package -DskipTests
 
-# Bước 2: Dùng Tomcat để chạy
+# Stage 2: Chạy bằng Tomcat
 FROM tomcat:10.1-jdk21-openjdk-slim
 RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Chỗ này phải khớp với <artifactId> trong pom.xml
-# Giữ nguyên tên "Libary" như bạn muốn
-COPY --from=build /app/target/Libary-1.0-SNAPSHOT.war /usr/local/tomcat/webapps/ROOT.war
-
+# Copy file .war vừa build ở Stage 1 vào Stage 2 (Giữ nguyên tên Libary)
+# Sử dụng dấu * để copy bất kỳ file .war nào được tạo ra trong target
+COPY --from=build /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
