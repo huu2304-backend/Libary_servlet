@@ -17,20 +17,19 @@ import static com.university.library.utils.AppConstants.*;
 
 @WebServlet(name = "bookController", urlPatterns = {URL_HOME, URL_ADMIN_BOOKS})
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2,
-        maxFileSize = 1024 * 1024 * 10,
-        maxRequestSize = 1024 * 1024 * 50
+        fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
+        maxFileSize = 1024 * 1024 * 10,       // 10MB
+        maxRequestSize = 1024 * 1024 * 50     // 50MB
 )
 public class BookController extends HttpServlet {
     private final BookDAO bookDAO = new BookDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
-    private static final String UPLOAD_DIR = "C:" + File.separator + "image" + File.separator + "uploads";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        String path = request.getServletPath();
         String action = request.getParameter("action");
+        String path = request.getServletPath();
         HttpSession session = request.getSession();
 
         List<Category> categories = categoryDAO.getAllCategories();
@@ -87,6 +86,7 @@ public class BookController extends HttpServlet {
                 processUpdateBook(request, session);
             }
         } catch (Exception e) {
+            e.printStackTrace(); // In lỗi ra log Render để dễ theo dõi
             session.setAttribute("message", "Lỗi: " + e.getMessage());
             session.setAttribute("messageType", "error");
         }
@@ -103,8 +103,8 @@ public class BookController extends HttpServlet {
         Part filePart = request.getPart("image");
         String fileName = "default.jpg";
         if (filePart != null && filePart.getSize() > 0) {
-            fileName = System.currentTimeMillis() + "_" + filePart.getSubmittedFileName();
-            saveFile(filePart, fileName);
+            fileName = System.currentTimeMillis() + "_" + getFileName(filePart);
+            saveFile(request, filePart, fileName);
         }
 
         bookDAO.addBook(new Book(title, author, fileName, Integer.parseInt(catIdRaw)));
@@ -120,27 +120,35 @@ public class BookController extends HttpServlet {
         String oldImage = request.getParameter("oldImage");
 
         if (idRaw == null || catIdRaw == null) {
-            throw new Exception("Dữ liệu gửi lên bị thiếu (ID hoặc Category null)");
+            throw new Exception("Dữ liệu thiếu (ID hoặc Category null)");
         }
-
-        int id = Integer.parseInt(idRaw);
-        int categoryId = Integer.parseInt(catIdRaw);
 
         Part filePart = request.getPart("image");
         String fileName = (filePart != null && filePart.getSize() > 0)
-                ? System.currentTimeMillis() + "_" + filePart.getSubmittedFileName()
+                ? System.currentTimeMillis() + "_" + getFileName(filePart)
                 : oldImage;
 
-        if (filePart != null && filePart.getSize() > 0) saveFile(filePart, fileName);
+        if (filePart != null && filePart.getSize() > 0) {
+            saveFile(request, filePart, fileName);
+        }
 
-        bookDAO.updateBook(new Book(id, title, author, fileName, categoryId, null));
+        bookDAO.updateBook(new Book(Integer.parseInt(idRaw), title, author, fileName, Integer.parseInt(catIdRaw), null));
         session.setAttribute("message", "Cập nhật thành công!");
         session.setAttribute("messageType", "success");
     }
 
-    private void saveFile(Part part, String fileName) throws IOException {
-        File fileSaveDir = new File(UPLOAD_DIR);
-        if (!fileSaveDir.exists()) fileSaveDir.mkdirs();
-        part.write(UPLOAD_DIR + File.separator + fileName);
+    private void saveFile(HttpServletRequest request, Part part, String fileName) throws IOException {
+        // Lấy đường dẫn thư mục 'uploads' nằm bên trong thư mục triển khai ứng dụng
+        String uploadPath = request.getServletContext().getRealPath("") + File.separator + "uploads";
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+        // Ghi file
+        part.write(uploadPath + File.separator + fileName);
+    }
+
+    private String getFileName(Part part) {
+        return part.getSubmittedFileName();
     }
 }
