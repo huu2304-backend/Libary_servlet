@@ -5,7 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Quản trị Thư viện</title>
+    <title>Quản lí Thư viện</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f8f9fa; }
         .header-admin { display: flex; justify-content: space-between; align-items: center; background: #343a40; color: white; padding: 15px 25px; border-radius: 8px; margin-bottom: 20px; }

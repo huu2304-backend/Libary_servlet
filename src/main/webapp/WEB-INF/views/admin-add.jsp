@@ -295,7 +295,7 @@
     form.addEventListener('submit', function(e) {
         const errorMsg = validateAuthor(authorInput.value);
         if (errorMsg) {
-            e.preventDefault(); // Dừng việc gửi form
+            e.preventDefault();
             authorInput.focus();
             authorError.textContent = errorMsg;
             authorError.style.display = 'block';
