@@ -3,7 +3,7 @@ package com.university.library.controller;
 import com.university.library.dao.CategoryDAO;
 import com.university.library.model.Book;
 import com.university.library.service.BookService;
-import com.university.library.service.impl.BookServiceImpl;
+import com.university.library.service.BookServiceImpl;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
